@@ -1,5 +1,5 @@
 import { LoginPage } from './features/auth/LoginPage';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { TabType } from './types';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
@@ -31,7 +31,7 @@ export default function App() {
         {activeTab === 'lookup' && <ResultLookupPage />}
         {activeTab === 'student' && <StudentDashboard />}
         {activeTab === 'faculty' && <FacultyDashboard />}
-        {activeTab === 'login' && <LoginPage onNavigate={(tab) => setActiveTab(tab as any)} />}
+        {activeTab === 'login' && <LoginPage onNavigate={setActiveTab} />}
       </main>
 
       <Footer />

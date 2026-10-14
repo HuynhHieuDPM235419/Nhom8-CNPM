@@ -1,17 +1,42 @@
 import React, { useState } from 'react';
+import type { TabType } from '../../types';
+import { api } from '../../services/api';
 
 interface LoginPageProps {
-  onNavigate?: (tab: string) => void;
+  onNavigate?: (tab: TabType) => void;
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Xử lý logic gửi dữ liệu đăng nhập tới Backend tại đây
-    console.log('Thông tin đăng nhập:', { email, password });
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      const result = await api.auth.login({ username: email.trim(), password });
+      if (!result.success || !result.token) {
+        throw new Error(result.message || 'Đăng nhập không thành công.');
+      }
+
+      localStorage.setItem('agu_token', result.token);
+      localStorage.setItem('agu_user', JSON.stringify(result.user));
+
+      const destination: TabType = result.user?.roleCode === 'STUDENT'
+        ? 'student'
+        : result.user?.roleCode === 'LECTURER'
+          ? 'faculty'
+          : 'home';
+      onNavigate?.(destination);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Không thể đăng nhập. Vui lòng thử lại.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -53,11 +78,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
             />
           </div>
 
+          {error && (
+            <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              {error}
+            </p>
+          )}
+
           <button
             type="submit"
-            className="w-full rounded-lg bg-sky-600 py-3 text-sm font-semibold text-white hover:bg-sky-700 transition"
+            disabled={isSubmitting}
+            className="w-full rounded-lg bg-sky-600 py-3 text-sm font-semibold text-white hover:bg-sky-700 transition disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Đăng nhập
+            {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>
         </form>
 
@@ -65,6 +97,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
           <p className="mt-4 text-center text-xs text-slate-500">
             Chưa có tài khoản?{' '}
             <button
+              type="button"
               onClick={() => onNavigate('register')}
               className="font-semibold text-sky-600 hover:underline"
             >
