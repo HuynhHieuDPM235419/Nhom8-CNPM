@@ -1,4 +1,4 @@
-const { sql, poolPromise } = require('../config/db');
+const { sql, poolPromise } = require('../config/db'); //1.
 
 // 1. Lấy danh sách ngành đào tạo Thạc sĩ (GET /api/academic/majors)
 exports.getMajors = async (req, res) => {
